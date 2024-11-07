@@ -1,10 +1,10 @@
 /**
  *  ---------
  * |.##> <##.|  coolPACS
- * |#       #|  
+ * |#       #|
  * |#       #|  Copyright (c) 2011-2014 CardContact Software & System Consulting
  * |'##> <##'|  Andreas Schwier, 32429 Minden, Germany (www.cardcontact.de)
- *  --------- 
+ *  ---------
  *
  *  This file is part of of the coolPACS project located at www.coolpacs.org
  *
@@ -20,21 +20,22 @@
  *  You should have received a copy of the GNU General Public License
  *  along with OpenSCDP; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- * 
+ *
  * @fileoverview Simple Physical Access Control Terminal Simulation
  *
  * <p>This simulation shows the use of a SmartCard-HSM card for physical access control. The device authentication key and cv certificate
  *    is used to authenticate the card towards the reader and to establish a secure communication channel to read access control data.</p>
- * <p>If a PIN code is entered at the reader, then the code will be presented to the card using the secure communication channel, 
+ * <p>If a PIN code is entered at the reader, then the code will be presented to the card using the secure communication channel,
  *    thereby protecting the PIN code against eavesdropping at the air interface.
  *    As the verification response from the card is protected with a message authentication code, the terminal
  *    can proof that the verification was actually performed by the card.
  * <p>This demo requires at least the 3.7.1574 version of the Smart Card Shell.</p>
  */
- 
-load("../lib/smartcardhsm.js");
 
- 
+var SmartCardHSM = require("scsh/sc-hsm/SmartCardHSM").SmartCardHSM;
+
+
+
 function AccessController(crdreader) {
 	this.crdreader = crdreader;
 	this.accessTerminal = new AccessTerminal();
@@ -102,19 +103,19 @@ AccessController.prototype.checkAccessWithSCHSM = function(card) {
 		print(e);
 		return false;
 	}
-	
-	// var rsp = ac.readBinary(SmartCardHSM.C_DevAut);
-	
-    var rsp = new ByteString("", HEX);
-    var offset = 0;
-    
-    do {
-        var data = card.sendApdu(0x00, 0xB1, 0x2F, 0x02, new ByteString("5402", HEX).concat(ByteString.valueOf(offset, 2)), 200, [0x9000, 0x6282]);
-        rsp = rsp.concat(data);
-        offset += data.length;
-    } while (data.length > 0 && card.SW != 0x6282);
-    
-    var chain = SmartCardHSM.validateCertificateChain(this.crypto, rsp);
+
+	var rsp = ac.readBinary(SmartCardHSM.C_DevAut);
+/*
+	var rsp = new ByteString("", HEX);
+	var offset = 0;
+
+	do {
+		var data = card.sendApdu(0x00, 0xB1, 0x2F, 0x02, new ByteString("5402", HEX).concat(ByteString.valueOf(offset, 2)), 200, [0x9000, 0x6282]);
+		rsp = rsp.concat(data);
+		offset += data.length;
+	} while (data.length > 0 && card.SW != 0x6282);
+*/
+	var chain = SmartCardHSM.validateCertificateChain(this.crypto, rsp);
 
 	try	{
 		ac.openSecureChannel(this.crypto, chain.publicKey);
@@ -138,7 +139,7 @@ AccessController.prototype.checkAccessWithSCHSM = function(card) {
 	var duration = stoptime.valueOf() - starttime.valueOf();
 
 	print("Duration " + duration + " ms");
-	
+
 	print("Card id : " + chain.path);
 	return true;
 }
